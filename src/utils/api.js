@@ -9,8 +9,9 @@ const API_BASE_URL = isDevelopment
   ? import.meta.env.VITE_API_BASE_URL_LOCAL
   : import.meta.env.VITE_API_BASE_URL_DEPLOY;
 
-// MEDIA FIX: The Django backend returns something like "/media/recipes/.."
-// Frontend needs full URL.
+// -----------------------------------------------------
+// MEDIA FIX: Full URL for images
+// -----------------------------------------------------
 export function getMediaUrl(path) {
   if (!path) return "";
   if (path.startsWith("http")) return path;
@@ -21,7 +22,7 @@ export function getMediaUrl(path) {
 // AXIOS INSTANCE
 // -----------------------------------------------------
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE_URL + "/api", // add /api here
 });
 
 // -----------------------------------------------------
@@ -51,10 +52,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const r = await axios.post(`${API_BASE_URL}/token/refresh/`, {
-          refresh,
-        });
-
+        const r = await axios.post(`${API_BASE_URL}/api/token/refresh/`, { refresh });
         const newAccess = r.data.access;
         localStorage.setItem("accessToken", newAccess);
         original.headers.Authorization = `Bearer ${newAccess}`;
@@ -75,14 +73,14 @@ api.interceptors.response.use(
 // API WRAPPERS
 // -----------------------------------------------------
 export const AuthAPI = {
+  register: (username, password) =>
+    api.post("/auth/register/", { username, password }), // include trailing slash
   login: async (username, password) => {
-    const res = await api.post("/token/", { username, password }); // <-- SimpleJWT login
+    const res = await api.post("/token/", { username, password });
     localStorage.setItem("accessToken", res.data.access);
     localStorage.setItem("refreshToken", res.data.refresh);
     return res;
   },
-  register: (username, password) =>
-    api.post("/auth/register/", { username, password }), // <-- trailing slash
 };
 
 export const RecipesAPI = {
