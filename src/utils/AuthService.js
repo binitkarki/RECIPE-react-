@@ -7,11 +7,13 @@ const API_URL = isDevelopment
 
 // Signup user
 export async function signup(username, password) {
-  return axios.post(`${API_URL}/auth/signup/`, { username, password });
+  // Correct URL with trailing slash
+  return axios.post(`${API_URL}/auth/register/`, { username, password });
 }
 
 // Login user
 export async function login(username, password) {
+  // SimpleJWT login endpoint
   const res = await axios.post(`${API_URL}/token/`, { username, password });
   localStorage.setItem("accessToken", res.data.access);
   localStorage.setItem("refreshToken", res.data.refresh);

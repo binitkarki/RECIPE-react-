@@ -51,7 +51,6 @@ api.interceptors.response.use(
       }
 
       try {
-        // Correct Django SimpleJWT refresh URL
         const r = await axios.post(`${API_BASE_URL}/token/refresh/`, {
           refresh,
         });
@@ -77,13 +76,13 @@ api.interceptors.response.use(
 // -----------------------------------------------------
 export const AuthAPI = {
   login: async (username, password) => {
-    const res = await api.post("/token/", { username, password });
+    const res = await api.post("/token/", { username, password }); // <-- SimpleJWT login
     localStorage.setItem("accessToken", res.data.access);
     localStorage.setItem("refreshToken", res.data.refresh);
     return res;
   },
   register: (username, password) =>
-    api.post("/auth/register", { username, password }),
+    api.post("/auth/register/", { username, password }), // <-- trailing slash
 };
 
 export const RecipesAPI = {
@@ -121,8 +120,8 @@ export const BookmarksAPI = {
 };
 
 export const CommentsAPI = {
-  list: (recipeId) => api.get(`/recipes/${recipeId}/comments`),
-  add: (recipeId, text) => api.post(`/recipes/${recipeId}/comments`, { text }),
+  list: (recipeId) => api.get(`/recipes/${recipeId}/comments/`),
+  add: (recipeId, text) => api.post(`/recipes/${recipeId}/comments/`, { text }),
 };
 
 export default api;
