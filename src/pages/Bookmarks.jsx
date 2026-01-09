@@ -7,8 +7,9 @@ import { IoIosTimer } from "react-icons/io";
 import { IoPeopleSharp } from "react-icons/io5";
 import { SiLevelsdotfyi } from "react-icons/si";
 import { IoArrowBack } from "react-icons/io5";
+import { getImageUrl } from "../utils/image";   // <-- ADDED
 import "../styles/Grid.css";
-import "../styles/RecipeDetail.css"; // reuse .back-arrow styling
+import "../styles/RecipeDetail.css";
 
 export default function Bookmarks() {
   const { accessToken } = useAuth();
@@ -17,7 +18,9 @@ export default function Bookmarks() {
 
   useEffect(() => {
     if (!accessToken) { navigate("/"); return; }
-    BookmarksAPI.list().then((res) => setBookmarks(res.data)).catch(() => {});
+    BookmarksAPI.list()
+      .then((res) => setBookmarks(res.data))
+      .catch(() => {});
   }, [accessToken, navigate]);
 
   const removeBookmark = async (bookmarkId) => {
@@ -33,11 +36,15 @@ export default function Bookmarks() {
         </span>
         <h2>Bookmarked recipes</h2>
       </div>
+
       <div className="grid grid-6">
         {bookmarks.map((b) => (
           <div className="card-block" key={b.id}>
             <Link to={`/recipes/${b.recipe.id}`} className="image-card hover-zoom">
-              <img src={b.recipe.image} alt={b.recipe.title} />
+              <img
+                src={getImageUrl(b.recipe.image)}   // <-- FIXED
+                alt={b.recipe.title}
+              />
               <div className="image-overlay">
                 <h4 className="overlay-title">{b.recipe.title}</h4>
                 <div className="overlay-meta icons">
@@ -47,6 +54,7 @@ export default function Bookmarks() {
                 </div>
               </div>
             </Link>
+
             <div className="card-actions">
               <button onClick={() => removeBookmark(b.id)}>Remove</button>
             </div>

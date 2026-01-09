@@ -4,11 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { RecipesAPI } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import { IoIosTimer } from "react-icons/io";
-import { IoPeopleSharp } from "react-icons/io5";
+import { IoPeopleSharp, IoArrowBack } from "react-icons/io5";
 import { SiLevelsdotfyi } from "react-icons/si";
-import { IoArrowBack } from "react-icons/io5";   // import arrow icon
+import { getImageUrl } from "../utils/image";   // <-- NEW
 import "../styles/Grid.css";
-import "../styles/RecipeDetail.css";             // reuse .back-arrow styling
+import "../styles/RecipeDetail.css";
 
 export default function MyRecipes() {
   const { user, accessToken } = useAuth();
@@ -16,8 +16,14 @@ export default function MyRecipes() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!accessToken) { navigate("/"); return; }
-    RecipesAPI.mine().then((res) => setRecipes(res.data)).catch(() => {});
+    if (!accessToken) {
+      navigate("/");
+      return;
+    }
+
+    RecipesAPI.mine()
+      .then((res) => setRecipes(res.data))
+      .catch(() => {});
   }, [accessToken, navigate]);
 
   const onDelete = async (id) => {
@@ -32,13 +38,18 @@ export default function MyRecipes() {
         <span className="back-arrow" onClick={() => navigate(-1)}>
           <IoArrowBack />
         </span>
-        <h2>My recipes{user ? ` — ${user.username}` : ""}</h2>
+        <h2>My recipes {user ? `— ${user.username}` : ""}</h2>
       </div>
+
       <div className="grid grid-6">
         {recipes.map((r) => (
           <div className="card-block" key={r.id}>
             <Link to={`/recipes/${r.id}`} className="image-card hover-zoom">
-              <img src={r.image} alt={r.title} />
+              <img
+                src={getImageUrl(r.image)}  // <-- FIXED
+                alt={r.title}
+              />
+
               <div className="image-overlay">
                 <h4 className="overlay-title">{r.title}</h4>
                 <div className="overlay-meta icons">
@@ -48,6 +59,7 @@ export default function MyRecipes() {
                 </div>
               </div>
             </Link>
+
             <div className="card-actions">
               <button onClick={() => navigate(`/recipes/${r.id}`)}>View</button>
               <button onClick={() => navigate(`/create?id=${r.id}`)}>Edit</button>

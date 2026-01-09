@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { RecipesAPI, CommentsAPI, BookmarksAPI } from "../utils/api";
+import { getImageUrl } from "../utils/image";   // <-- FIXED
 import { useAuth } from "../context/AuthContext";
 import { IoIosTimer } from "react-icons/io";
 import { IoPeopleSharp } from "react-icons/io5";
@@ -30,7 +31,7 @@ export default function RecipeDetail() {
       const res = await RecipesAPI.detail(id);
       setRecipe(res.data);
       setLikesCount(res.data.likes_count || 0);
-      setLiked(res.data.liked); 
+      setLiked(res.data.liked);
 
       const c = await CommentsAPI.list(id);
       setComments(c.data);
@@ -46,7 +47,9 @@ export default function RecipeDetail() {
         incrementedRef.current = true;
         try {
           const v = await RecipesAPI.view(id);
-          setRecipe((prev) => (prev ? { ...prev, views: v.data.views } : prev));
+          setRecipe((prev) =>
+            prev ? { ...prev, views: v.data.views } : prev
+          );
         } catch {}
       }
     };
@@ -83,16 +86,24 @@ export default function RecipeDetail() {
     setCommentText("");
   };
 
-  const formattedDate = recipe.created_at ? new Date(recipe.created_at).toLocaleDateString() : "";
+  const formattedDate = recipe.created_at
+    ? new Date(recipe.created_at).toLocaleDateString()
+    : "";
 
-  const units = ['cup','cups','tbsp','tablespoon','tablespoons','tsp','teaspoon','teaspoons','g','kg','ml','l','slice','slices','packet','packets'];
+  const units = [
+    "cup", "cups", "tbsp", "tablespoon", "tablespoons",
+    "tsp", "teaspoon", "teaspoons", "g", "kg", "ml",
+    "l", "slice", "slices", "packet", "packets"
+  ];
+
   const splitAmount = (line) => {
-    const parts = line.split(' ');
+    const parts = line.split(" ");
     if (parts.length >= 2) {
       const maybeUnit = parts[1].toLowerCase();
-      if (units.includes(maybeUnit)) return [parts.slice(0,2).join(' '), parts.slice(2).join(' ')];
+      if (units.includes(maybeUnit))
+        return [parts.slice(0, 2).join(" "), parts.slice(2).join(" ")];
     }
-    return [parts[0], parts.slice(1).join(' ')];
+    return [parts[0], parts.slice(1).join(" ")];
   };
 
   return (
@@ -104,20 +115,33 @@ export default function RecipeDetail() {
       </div>
 
       {/* Hero Section */}
-      <section className="hero" style={{ backgroundImage: `url(${recipe.image})` }}>
+      <section
+        className="hero"
+        style={{
+          backgroundImage: `url(${getImageUrl(recipe.image)})`  // <-- FIXED
+        }}
+      >
         <div className="hero-overlay">
           <div className="title-block">
             <h1>{recipe.title}</h1>
             <small className="date">{formattedDate}</small>
             <div className="meta-row">
-              <span><IoIosTimer /> {recipe.cooking_time} min</span>
-              <span><IoPeopleSharp /> {recipe.servings}</span>
-              <span><SiLevelsdotfyi /> {recipe.difficulty}</span>
+              <span>
+                <IoIosTimer /> {recipe.cooking_time} min
+              </span>
+              <span>
+                <IoPeopleSharp /> {recipe.servings}
+              </span>
+              <span>
+                <SiLevelsdotfyi /> {recipe.difficulty}
+              </span>
             </div>
           </div>
 
           <div className="hero-actions">
-            <div className="pill"><FaEye /> {recipe.views ?? 0}</div>
+            <div className="pill">
+              <FaEye /> {recipe.views ?? 0}
+            </div>
             <button
               type="button"
               className={`like ${liked ? "active" : ""}`}
@@ -142,29 +166,34 @@ export default function RecipeDetail() {
         <div className="stream-col scroll-hover">
           <h2>Ingredients</h2>
           <ul className="plain-list">
-            {Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
-              ? recipe.ingredients.map((line, i) => {
-                  const [amt, rest] = splitAmount(line);
-                  return (
-                    <li key={i}>
-                      <strong className="qty-gold">{amt}</strong> {rest}
-                    </li>
-                  );
-                })
-              : <li>No ingredients available</li>}
+            {Array.isArray(recipe.ingredients) &&
+            recipe.ingredients.length > 0 ? (
+              recipe.ingredients.map((line, i) => {
+                const [amt, rest] = splitAmount(line);
+                return (
+                  <li key={i}>
+                    <strong className="qty-gold">{amt}</strong> {rest}
+                  </li>
+                );
+              })
+            ) : (
+              <li>No ingredients available</li>
+            )}
           </ul>
         </div>
 
         <div className="stream-col scroll-hover">
           <h2>Steps</h2>
           <ul className="steps-list">
-            {Array.isArray(recipe.steps) && recipe.steps.length > 0
-              ? recipe.steps.map((step, i) => (
-                  <li key={i}>
-                    <span className="step-circle">{i + 1}</span> {step}
-                  </li>
-                ))
-              : <li>No steps available</li>}
+            {Array.isArray(recipe.steps) && recipe.steps.length > 0 ? (
+              recipe.steps.map((step, i) => (
+                <li key={i}>
+                  <span className="step-circle">{i + 1}</span> {step}
+                </li>
+              ))
+            ) : (
+              <li>No steps available</li>
+            )}
           </ul>
         </div>
       </section>
@@ -181,13 +210,22 @@ export default function RecipeDetail() {
           />
           <button onClick={addComment}>Post</button>
         </div>
+
         <ul className="comment-list">
           {comments.map((c) => (
             <li key={c.id}>
               <div className="comment-header">
-                <img className="avatar" src={`https://ui-avatars.com/api/?name=${c.author}`} alt={c.author} />
+                <img
+                  className="avatar"
+                  src={`https://ui-avatars.com/api/?name=${c.author}`}
+                  alt={c.author}
+                />
                 <strong>{c.author}</strong>
-                <span>{c.created_at ? new Date(c.created_at).toLocaleDateString() : ""}</span>
+                <span>
+                  {c.created_at
+                    ? new Date(c.created_at).toLocaleDateString()
+                    : ""}
+                </span>
               </div>
               <p>{c.text}</p>
             </li>
@@ -197,3 +235,4 @@ export default function RecipeDetail() {
     </div>
   );
 }
+ 
